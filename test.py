@@ -1,11 +1,4 @@
-buyingPrice = 100
+with open("output.txt", "w", encoding="utf-8") as f:
+  f.write("arsenal\n")
+  f.write("football team from london\n")
 
-def isBleeding(tradingPrice):
-  global buyingPrice
-  if buyingPrice != 0 and tradingPrice < (buyingPrice * 95 / 100):
-    return True
-  else:
-    return False
-
-print(isBleeding(100))
-print(isBleeding(90))

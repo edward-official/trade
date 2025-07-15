@@ -1,20 +1,18 @@
 import yfinance as yf
-target = yf.Ticker("IONQ")
+target = yf.Ticker("QQQ")
 history = target.history(period="max")
 daysInHistory = len(history)
-
-veryFirstPrice = history['Open'].iloc[0]
-veryRecentPrice = history['Open'].iloc[-1]
-natureProfit = 100 * (veryRecentPrice/veryFirstPrice)
 
 isRetained = False
 balance = 100
 entryPrice = 0
+currentPrice = 0
+highest = 0
 tradingRecords = []
 recentIndex = 0
 
 def evaluateTrend(index):
-  global entryPrice, isRetained
+  global entryPrice, isRetained, highest
   date = history.index[index].date()
   priceOpen = history['Open'].iloc[index]
   priceClose = history['Close'].iloc[index]
@@ -28,19 +26,22 @@ def evaluateTrend(index):
   if priceOpen<=sma50<=priceClose or priceOpen>=sma50>=priceClose:
     tradingPrice = sma50
   
-  if entryPrice != 0:
-    if tradingPrice < (entryPrice*95/100):
-      print(f"🔥🔥🔥🔥🔥🔥🔥🔥🔥 {entryPrice} > {tradingPrice}: {tradingPrice/entryPrice*100-100}%")
+  if isRetained and entryPrice != 0:
+    if tradingPrice < (entryPrice*0.98):
+      print(f"🔥 exit: bleeding {entryPrice} > {tradingPrice}: {tradingPrice/entryPrice*100-100}%")
       return "EXIT"
-  elif tradingPrice < sma50:
+  if isRetained and tradingPrice < highest * 0.8:
+    print(f"🔥🔥🔥🔥🔥🔥🔥🔥 exit: drop from high")
     return "EXIT"
-  elif priceOpen < sma50 < priceClose or priceClose < sma50 < priceOpen:
+  if isRetained and tradingPrice < sma50:
+    print(f"🔥 exit: below the 50-day average")
     return "EXIT"
-  elif tradingPrice > sma50 > sma150 > sma200:
+  if tradingPrice > sma50 > sma150 > sma200:
     return "UP"
+  
 
 def movement(index):
-  global isRetained, entryPrice, balance
+  global isRetained, entryPrice, currentPrice, balance, highest, tradingRecords
   date = history.index[index].date()
   priceOpen = history['Open'].iloc[index]
   priceClose = history['Close'].iloc[index]
@@ -53,9 +54,13 @@ def movement(index):
   tradingPrice = (priceOpen+priceClose)/2
   if priceOpen<sma50<priceClose or priceOpen>sma50>priceClose:
     tradingPrice = sma50
+  currentPrice = tradingPrice
   profitRatio = (tradingPrice / entryPrice) * 100 - 100
   if entryPrice==0:
     profitRatio=0
+  if isRetained and highest < tradingPrice:
+    print(f"🚨 new highest: {tradingPrice}")
+    highest = tradingPrice
 
   trend = evaluateTrend(index)
   if trend=="UP" and not isRetained:
@@ -75,25 +80,39 @@ def movement(index):
     # print()
     tradingRecords.append(float(profitRatio))
     entryPrice = 0
+    highest = 0
+    print(f"🚨 reset highest: {highest}")
     return
-  elif isRetained:
-    print(f"👀 [{date}]  PRICE: {tradingPrice:<8.2f}({profitRatio:>5.2f}%) 50: {sma50:<8.2f} 150: {sma150:<8.2f} 200: {sma200:<8.2f}")
+  # elif isRetained:
+    # print(f"👀 [{date}]  PRICE: {tradingPrice:<8.2f}({profitRatio:>5.2f}%) 50: {sma50:<8.2f} 150: {sma150:<8.2f} 200: {sma200:<8.2f}")
 
 
-for index in range(daysInHistory-200):
-  movement(index+200)
-print()
+def backtest(daysInHistory):
+  global balance
+  for index in range(daysInHistory-200):
+    movement(index+200)
+  print()
 
-print(f"🔎 record of trade profit ratio in ascending order")
-for ratio in sorted(tradingRecords):
-  print(f"{ratio:>6.2f}%")
-print()
+  if isRetained:
+    tradingRecords.append(currentPrice/entryPrice*100)
+    balance = (currentPrice/entryPrice)*balance
 
-print(f"opening date: {history.index[0].date()}")
-print(f"closing date: {history.index[-1].date()}")
-print(f"total balance: {balance:.2f}")
-print(f"nature profit: {natureProfit:.2f}")
-if balance > natureProfit:
-  print("🎉 WIN 🎉")
-else:
-  print("❌ LOSE ❌")
+  print(f"🔎 record of trade profit ratio in ascending order")
+  for ratio in sorted(tradingRecords):
+    print(f"{ratio:>6.2f}%")
+  print()
+
+  veryFirstPrice = history['Open'].iloc[0]
+  veryRecentPrice = history['Open'].iloc[-1]
+  natureProfit = 100 * (veryRecentPrice/veryFirstPrice)
+
+  print(f"opening date: {history.index[0].date()}")
+  print(f"closing date: {history.index[-1].date()}")
+  print(f"total balance: {balance:.2f}")
+  print(f"nature profit: {natureProfit:.2f}")
+  if balance > natureProfit:
+    print("🎉 WIN 🎉")
+  else:
+    print("❌ LOSE ❌")
+
+backtest(daysInHistory)
