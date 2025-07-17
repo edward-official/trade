@@ -1,7 +1,8 @@
 import yfinance as yf
-target = yf.Ticker("QQQ")
+target = yf.Ticker("TSLA")
 history = target.history(period="max")
 numberOfDays = len(history)
+
 
 def isOnUpTrend(history, index):
   priceLow = history['Low'].iloc[index]
@@ -14,7 +15,8 @@ def isOnUpTrend(history, index):
   else:
     return False
 
-def actionRouter(history, index):
+
+def manager(history, index, highestPrice):
   date = history.index[index].date()
   priceOpen = history['Open'].iloc[index]
   priceClose = history['Close'].iloc[index]
@@ -28,6 +30,8 @@ def actionRouter(history, index):
     return "ENTER"
   elif not isOnUpTrend(history, index):
     return "EXIT"
+  # elif priceOpen < highestPrice * 0.9:
+  #   return "EXIT"
 
 
 def backtest(history):
@@ -46,24 +50,30 @@ def backtest(history):
     sma150 = history['Close'].rolling(window=150).mean().iloc[index]
     sma200 = history['Close'].rolling(window=200).mean().iloc[index]
     
-    action = actionRouter(history, index)
+    action = manager(history, index, highestPrice)
     if enteredPrice == 0 and action == "ENTER":
       print(f"✅ [{date}]: open: {priceOpen:5.2f}, close: {priceClose:5.2f}, 50: {sma50:5.2f}, 150: {sma150:5.2f}, 200: {sma200:5.2f}")
       enteredPrice = history["Open"].iloc[index]
       highestPrice = history["High"].iloc[index]
     elif enteredPrice != 0 and action == "EXIT":
-      interestRate = (history["Close"].iloc[index] / enteredPrice) * 100 - 100
+      exitingPrice = history["Open"].iloc[index]
+      interestRate = (exitingPrice / enteredPrice) * 100 - 100
       recordsOfRate.append(interestRate)
       print(f"❌ [{date}]: open: {priceOpen:5.2f}, close: {priceClose:5.2f}, 50: {sma50:5.2f}, 150: {sma150:5.2f}, 200: {sma200:5.2f}")
       print(f"🔎 entered price: {enteredPrice:7.2f}, interest rate: {interestRate:6.2f}%")
       print()
-      balance = balance * (history["Close"].iloc[index] / enteredPrice)
+      balance = balance * (exitingPrice / enteredPrice)
       enteredPrice = 0
       highestPrice = 0
+    elif highestPrice < priceHigh:
+      highestPrice = priceHigh
 
   for rate in sorted(recordsOfRate):
     print(f"{rate:5.2f}%")
-  print(f"💻 balance: {balance}")
+  opponent = 100 * (history["Close"].iloc[-1] / history["Open"].iloc[0])
+  print(f"💻 balance : {balance}")
+  print(f"💻 opponent: {opponent}")
   return
+
 
 backtest(history)
