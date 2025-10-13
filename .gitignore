@@ -1,6 +1,5 @@
 .venv
 
 edward/execution-logic.txt
-output.txt
-
-testing.py
+python-syntax/output.txt
+backtest/BackTester.py
