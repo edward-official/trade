@@ -1,5 +1,5 @@
 import yfinance as yf
-target = yf.Ticker("TSLA")
+target = yf.Ticker("IONQ")
 history = target.history(period="max")
 numberOfDays = len(history)
 
@@ -30,8 +30,8 @@ def manager(history, index, highestPrice):
     return "ENTER"
   elif not isOnUpTrend(history, index):
     return "EXIT"
-  # elif priceOpen < highestPrice * 0.9:
-  #   return "EXIT"
+  elif priceOpen < highestPrice * 0.7:
+    return "EXIT"
 
 
 def backtest(history):
