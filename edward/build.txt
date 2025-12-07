@@ -1,5 +1,0 @@
-make run-qqq;
-make run-ionq;
-make run-tsla;
-make run-googl;
-make run-all;

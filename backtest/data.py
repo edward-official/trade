@@ -17,13 +17,15 @@ def get_history(
   If use_cache is True, store/load from CSV under `data_dir/{ticker}.csv`
   so that repeated 백테스트가 항상 같은 데이터를 사용하도록 한다.
   """
-  data_path = Path(data_dir)
-  data_path.mkdir(parents=True, exist_ok=True)
-  csv_path = data_path / f"{ticker}.csv"
+  csv_path = None
+  if use_cache:
+    data_path = Path(data_dir)
+    data_path.mkdir(parents=True, exist_ok=True)
+    csv_path = data_path / f"{ticker}.csv"
 
-  if use_cache and csv_path.exists():
-    history = pd.read_csv(csv_path, index_col=0, parse_dates=True)
-    return history
+    if csv_path.exists():
+      history = pd.read_csv(csv_path, index_col=0, parse_dates=True)
+      return history
 
   target = yf.Ticker(ticker)
   history = target.history(period=period)
@@ -31,8 +33,7 @@ def get_history(
   if history.empty:
     raise ValueError(f"No history returned for ticker '{ticker}'")
 
-  if use_cache:
+  if use_cache and csv_path is not None:
     history.to_csv(csv_path)
 
   return history
-

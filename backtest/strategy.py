@@ -2,15 +2,9 @@ import pandas as pd
 
 
 def add_moving_averages(history: pd.DataFrame) -> pd.DataFrame:
-  """
-  history DataFrame에 50/150/200일 이동평균선을 미리 계산해서 컬럼으로 추가한다.
-
-  컬럼 이름:
-    - sma50
-    - sma150
-    - sma200
-  """
   close = history["Close"]
+  if "sma10" not in history.columns:
+    history["sma10"] = close.rolling(window=10).mean()
   if "sma20" not in history.columns:
     history["sma20"] = close.rolling(window=20).mean()
   if "sma50" not in history.columns:
@@ -43,31 +37,30 @@ def evaluate_trend(
     highest_price: float,
 ) -> str:
   """
-  QQQ 장기 백테스트용 200일 이동평균 기반 리스크 관리 전략.
+  5일 고가 돌파 + 트레일링 스탑 기반 추세 추종 전략.
 
-  - 진입:
-      * 종가가 200일선 위로 1% 이상 돌파
-  - 청산:
-      * 종가가 200일선 아래로 내려갈 때
-      * 또는 최고가 대비 15% 이상 하락 (트레일링 스탑)
+  - 진입: 종가가 최근 5일 고가 이상일 때
+  - 청산: 최고가 대비 38% 이상 밀릴 때 (트레일링 스탑)
 
   반환값:
     - "ENTER"
     - "EXIT"
     - "HOLD"
   """
+  trailing_stop = 0.38
+  breakout_lookback = 2
   price_close = history["Close"].iloc[index]
-  sma200 = history["sma200"].iloc[index]
 
-  if not is_retained:
-    if price_close > sma200 * 1.01:
-      return "ENTER"
+  recent_high = history["Close"].rolling(window=breakout_lookback).max().iloc[index]
+  if pd.isna(recent_high):
     return "HOLD"
 
-  if is_retained and entry_price:
-    if price_close < sma200:
-      return "EXIT"
-    if highest_price and price_close < highest_price * 0.85:
-      return "EXIT"
+  # 진입: 최근 5일 고가 이상을 돌파했을 때만 진입한다.
+  if not is_retained:
+    return "ENTER" if price_close >= recent_high else "HOLD"
+
+  # 보유 중이면 최고가 대비 38% 이상 밀릴 때 청산한다.
+  if highest_price and price_close <= highest_price * (1 - trailing_stop):
+    return "EXIT"
 
   return "HOLD"
