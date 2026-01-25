@@ -90,6 +90,35 @@ ruff check .
 ruff format .
 ```
 
+## 🤖 자동화 도구
+
+프로젝트 유지보수 및 일일 트레이딩을 돕는 스크립트가 `scripts/` 디렉토리에 포함되어 있습니다.
+
+### 1. 일일 신호 분석 (`daily_scan.py`)
+
+주요 관심 종목(QQQ, SPY, TSLA 등)의 현재 추세와 매매 신호를 분석하여 출력합니다.
+
+```bash
+python scripts/daily_scan.py
+```
+
+**출력 예시:**
+
+```text
+Ticker   Price      Trend      Action (No Pos)    Action (Holding)
+-----------------------------------------------------------------
+QQQ      622.72     UP 🟢       WAIT               HOLD
+MSFT     465.95     DOWN 🔴     WAIT               SELL ⚠️
+```
+
+### 2. 코드 품질 검사 (`verify_quality.sh`)
+
+린트(`ruff check`)와 포맷팅(`ruff format`)을 한 번에 수행합니다.
+
+```bash
+./scripts/verify_quality.sh
+```
+
 ---
 
 _Created by Antigravity_

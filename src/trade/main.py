@@ -33,9 +33,6 @@ def run_single(args: argparse.Namespace) -> None:
     print("Done.")
 
 
-
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description="Trade execution CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -46,7 +43,6 @@ def main() -> None:
         "--ticker", nargs="+", help="Tickers to backtest (default: QQQ)"
     )
     single_parser.set_defaults(func=run_single)
-
 
     args = parser.parse_args()
     args.func(args)
