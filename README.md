@@ -72,6 +72,16 @@ trade single --ticker AAPL TSLA
 
 결과 파일은 `outputs` 폴더 안에 저장됩니다.
 
+### 기능 3: 일괄 백테스트 (Batch Backtest)
+
+나스닥 상위 종목 및 주요 ETF(QQQ, QTUM) 17개 종목에 대해 한 번에 백테스트를 수행합니다.
+
+```bash
+python scripts/run_batch_backtest.py
+```
+
+실행이 완료되면 `outputs/single/` 폴더에 각 종목별 로그 파일이 생성됩니다.
+
 ## 3. 종료하기
 
 사용을 마치려면 터미널 창을 닫거나, 다음 명령어를 입력하세요.
