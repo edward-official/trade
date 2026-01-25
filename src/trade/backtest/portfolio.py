@@ -1,35 +1,17 @@
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
 import pandas as pd
 
-from .data import get_history
-from .strategy import add_moving_averages, is_on_up_trend
+from trade.data import get_history
+from trade.strategies import add_moving_averages, is_on_up_trend
+from trade.core.models import Position
 
 # Core risk controls
 MAX_ALLOC_PER_TICKER = 0.20    # 20% cap per ticker
 TRANCHE_FRACTION = 0.05        # each buy/sell tranche = 5% of portfolio
 TRAILING_STOP_PCT = 0.15       # lock profits if price drops 15% from highest
 RISK_CUTOFF = 0.01             # cut a ticker if loss hits 1% of total equity
-
-
-@dataclass
-class Position:
-  shares: float = 0.0
-  avg_cost: float = 0.0
-  highest_price: float = 0.0
-  trailing_stop: float = 0.0
-  last_price: Optional[float] = None
-
-  def value(self, price: Optional[float]) -> float:
-    return 0.0 if price is None else self.shares * price
-
-  def reset(self) -> None:
-    self.shares = 0.0
-    self.avg_cost = 0.0
-    self.highest_price = 0.0
-    self.trailing_stop = 0.0
 
 
 def _prepare_history(ticker: str, warmup: int, use_cache: bool) -> pd.DataFrame:
