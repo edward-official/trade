@@ -14,14 +14,17 @@ def get_outputs_dir() -> Path:
 
 def run_single(args: argparse.Namespace) -> None:
     from trade.backtest.single import run_single_backtest
+    from trade.strategies.trend import TrendStrategy
 
     outputs_dir = get_outputs_dir()
     tickers = args.ticker if args.ticker else ["QQQ"]
+    strategy = TrendStrategy()
 
     print(f"Running single backtest for: {tickers}")
     for ticker in tickers:
         run_single_backtest(
             ticker,
+            strategy,
             initial_balance=1000.0,
             warmup=200,
             show_trades=True,

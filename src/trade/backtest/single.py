@@ -2,11 +2,12 @@ from pathlib import Path
 from typing import List, Optional
 
 from trade.data import get_history
-from trade.strategies import add_moving_averages, evaluate_trend
+from trade.strategies.base import Strategy
 
 
 def run_single_backtest(
     ticker: str,
+    strategy: Strategy,
     *,
     initial_balance: float = 100.0,
     warmup: int = 200,
@@ -24,7 +25,7 @@ def run_single_backtest(
     - 결과는 log_dir/{ticker}_backtest.log 에 기록한다.
     """
     history = get_history(ticker, period="max", use_cache=use_cache)
-    history = add_moving_averages(history)
+    history = strategy.prepare_data(history)
 
     cash = initial_balance
     shares = 0.0
@@ -94,7 +95,7 @@ def run_single_backtest(
         if shares > 0 and price_close > highest_price:
             highest_price = price_close
 
-        decision = evaluate_trend(
+        decision = strategy.evaluate(
             history=history,
             index=idx,
             is_retained=shares > 0,
