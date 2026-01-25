@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trade"
+version = "0.1.0"
+description = "Trade Backtesting System"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "yfinance",
+    "pandas",
+    "ruff",
+]
+
+[project.scripts]
+trade = "trade.main:main"
+
+[tool.ruff]
+# Python version target
+target-version = "py38"
+
+# Same as Black.
+line-length = 88
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+# I: isort (import sorting)
+# B: flake8-bugbear (potential bugs)
+select = ["E", "F", "I", "B"]
+ignore = []
+
+# Allow fix for all enabled rules (when `--fix` is provided).
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"

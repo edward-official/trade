@@ -20,7 +20,7 @@ def run_single_backtest(
   Run a single-ticker breakout/trailing-stop backtest.
 
   - 엔트리: 최근 고가 돌파 시 자본 100% 매수
-  - 청산: 최고가 대비 38% 이상 하락 시 전량 청산
+  - 청산: 최고가 대비 20% 이상 하락 시 전량 청산
   - 결과는 log_dir/{ticker}_backtest.log 에 기록한다.
   """
   history = get_history(ticker, period="max", use_cache=use_cache)
@@ -45,6 +45,7 @@ def run_single_backtest(
     log_output.append(msg)
 
   def log_trade(
+      date_obj,
       action: str,
       price: float,
       *,
@@ -59,7 +60,7 @@ def run_single_backtest(
     action_label = {"BUY": "매수", "EXIT": "청산"}.get(action, action)
     hold_value = price * shares_after
     parts = [
-      f"{current_date.date()}",
+      f"{date_obj.date()}",
       f"{action_label:4s}",
       f"{ticker:5s}",
       f"가격 {price:8.2f}",
@@ -106,6 +107,7 @@ def run_single_backtest(
       highest_price = price_close
       cash -= buy_value
       log_trade(
+        current_date,
         "BUY",
         price_close,
         shares_after=shares,
@@ -125,6 +127,7 @@ def run_single_backtest(
       avg_cost = 0.0
       highest_price = 0.0
       log_trade(
+        current_date,
         "EXIT",
         price_close,
       shares_after=shares,
@@ -147,7 +150,10 @@ def run_single_backtest(
     diff = final_equity - buy_hold_final
     diff_pct = (diff / buy_hold_final * 100) if buy_hold_final else 0.0
     verdict = "전략 우세" if diff > 0 else "BUY&HOLD 우세" if diff < 0 else "동률"
-    out(f"비교(BUY&HOLD) 최종 자산: {buy_hold_final:,.2f} ({verdict}, 격차 {diff:,.2f}, {diff_pct:.2f}%)")
+    out(
+        f"비교(BUY&HOLD) 최종 자산: {buy_hold_final:,.2f} "
+        f"({verdict}, 격차 {diff:,.2f}, {diff_pct:.2f}%)"
+    )
   if shares > 0:
     out(f"- 보유 {ticker}: 평가액 {position_value:,.2f} (평단 {avg_cost:,.2f})")
 
